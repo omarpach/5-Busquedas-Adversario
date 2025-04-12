@@ -22,6 +22,19 @@ class Othello(ModeloJuegoZT2):
         s0[4][4] = -1
         return (s0, 1)
 
+    """
+    Checa si hay casillas vacias, si hay una casilla vacia
+    el juego no ha acabado.
+    """
+
+    def terminal(self, s):
+        matriz = s[0]
+        iter = matriz.flat
+        for x in iter:
+            if x == 0:
+                return False
+        return True
+
 
 def pretty_print_othello(s):
     print("\n   | A | B | C | D | E | F | G | H |")
