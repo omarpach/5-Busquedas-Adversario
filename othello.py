@@ -7,6 +7,9 @@ Ficha negra = 1
 Ficha blanca = -1
 Espacio vacio = 0
 
+Jugador 1 = negro
+Jugador 2 = blanco
+
 """
 
 import numpy as np
@@ -28,12 +31,19 @@ class Othello(ModeloJuegoZT2):
     """
 
     def terminal(self, s):
-        matriz = s[0]
-        iter = matriz.flat
+        iter = s[0].flat
         for x in iter:
             if x == 0:
                 return False
         return True
+
+    def ganancia(self, s):
+        iter = s[0].flat
+        sum_fichas_j1 = 0
+        for x in iter:
+            if x == 1:
+                sum_fichas_j1 += 1
+        return sum_fichas_j1
 
 
 def pretty_print_othello(s):
