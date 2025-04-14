@@ -55,23 +55,39 @@ class Othello(ModeloJuegoZT2):
         for p in posibles_jugadas_legales:
             if es_legal(s, j, p):
                 jugadas_legales.append(p)
-        # p = posibles_jugadas_legales.pop()
-        # if es_legal(s, j, p):
-        #     return p
         return jugadas_legales
+
+    def transicion(self, s, a, j):
+        nuevo_estado = s.copy()
+        direcciones = [
+            calcular_direccion(a, v) for v in buscar_fichas_vecinas(s, a, j * -1)
+        ]
+        for d in direcciones:
+            ficha_propia = buscar_ficha_en_dir(s, a, d, j)
+            if ficha_propia is not None:
+                voltear_fichas_en_rango(nuevo_estado, a, ficha_propia, d)
+        if nuevo_estado[a[0]][a[1]] == Ficha.VACIA:
+            nuevo_estado[a[0]][a[1]] = j
+        return nuevo_estado
 
     """
     Checa si hay casillas vacias, si hay una casilla vacia
     el juego no ha acabado.
-    TODO: si hay solo fichas blancas o negras el juego acaba
     """
 
     def terminal(self, s):
         iter = s.flat
+        hay_casillas_vacias = False
+        hay_fichas_blancas = False
+        hay_fichas_negras = False
         for x in iter:
             if x == Ficha.VACIA:
-                return False
-        return True
+                hay_casillas_vacias = True
+            elif x == Ficha.BLANCA:
+                hay_fichas_blancas = True
+            else:
+                hay_fichas_negras = True
+        return not (hay_fichas_blancas and hay_fichas_negras and hay_casillas_vacias)
 
     def ganancia(self, s):
         iter = s.flat
@@ -145,6 +161,40 @@ def es_legal(s, j: int, p: tuple[int, int]) -> bool:
     return es_legal
 
 
+def buscar_ficha_en_dir(
+    s, ficha_inicial: tuple[int, int], dir: Direccion, tipo_ficha: Ficha
+) -> tuple[int, int] | None:
+    seguir_buscando = True
+    ficha_actual = ficha_inicial
+    while seguir_buscando:
+        if not esta_en_rango(ficha_actual):
+            return None
+        ficha_actual = avanzar_direccion(ficha_actual, dir)
+        valor_ficha = s[ficha_actual[0]][ficha_actual[1]]
+        if valor_ficha == Ficha.VACIA:
+            return None
+        elif valor_ficha == tipo_ficha:
+            return ficha_actual
+
+
+def voltear_fichas_en_rango(
+    s, ficha_inicial: tuple[int, int], ficha_final: tuple[int, int], dir: Direccion
+):
+    ficha_actual = avanzar_direccion(ficha_inicial, dir)
+    while ficha_actual != ficha_final:
+        i, j = ficha_actual
+        s[i][j] *= -1
+        ficha_actual = avanzar_direccion(ficha_actual, dir)
+
+
+def esta_en_rango(ficha: tuple[int, int]) -> bool:
+    i, j = ficha
+    if i < 0 or i > 7 or j < 0 or j > 7:
+        return False
+    else:
+        return True
+
+
 def pretty_print_othello(s):
     print("\n   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |")
     separador_filas = "+---" * 8
@@ -166,13 +216,18 @@ def pretty_print_othello(s):
         print(separador_filas)
 
 
-def pretty_print_othello_debug(s):
+def pretty_print_othello_con_jugadas_legales(s, juego: Othello, jugador: int):
+    s_nuevo = s.copy()
+    jugadas_legales = juego.jugadas_legales(s, jugador)
+    for jugada in jugadas_legales:
+        i, j = jugada
+        s_nuevo[i][j] = 2
     print("\n   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |")
     separador_filas = "+---" * 8
     separador_filas = "---" + separador_filas + "+"
     print(separador_filas)
     for i in range(8):
-        fila = s[i]
+        fila = s_nuevo[i]
         valores_fila = [
             " X "
             if int(x) == Ficha.NEGRA
