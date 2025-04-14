@@ -91,11 +91,19 @@ class Othello(ModeloJuegoZT2):
 
     def ganancia(self, s):
         iter = s.flat
-        sum_fichas_j1 = 0
+        sum_negras = 0
+        sum_blancas = 0
         for x in iter:
             if x == Ficha.NEGRA:
-                sum_fichas_j1 += 1
-        return sum_fichas_j1
+                sum_negras += 1
+            elif x == Ficha.BLANCA:
+                sum_blancas += 1
+        if sum_negras > sum_blancas:
+            return Ficha.NEGRA.value
+        elif sum_blancas > sum_negras:
+            return Ficha.BLANCA.value
+        else:
+            return Ficha.VACIA.value
 
 
 def buscar_fichas(s, tipo_ficha: int):
