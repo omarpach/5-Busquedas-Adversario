@@ -157,15 +157,16 @@ def es_legal(s, j: int, p: tuple[int, int]) -> bool:
             aux = p
             while continuar:
                 nueva_pos = avanzar_direccion(aux, dir)
-                x, y = nueva_pos
-                if x < 0 or x > 7 or y < 0 or y > 7:
+                if esta_en_rango(nueva_pos):
+                    x, y = nueva_pos
+                    if s[x][y] == j:
+                        es_legal = True
+                        continuar = False
+                    elif s[x][y] == Ficha.VACIA:
+                        continuar = False
+                    aux = nueva_pos
+                else:
                     continuar = False
-                if s[x][y] == j:
-                    es_legal = True
-                    continuar = False
-                elif s[x][y] == Ficha.VACIA:
-                    continuar = False
-                aux = nueva_pos
     return es_legal
 
 
