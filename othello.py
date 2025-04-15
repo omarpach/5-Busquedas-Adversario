@@ -203,6 +203,35 @@ def esta_en_rango(ficha: tuple[int, int]) -> bool:
         return True
 
 
+def evalua(s: np.ndarray) -> float:
+    fichas = s.flat
+    sum_negras = 0
+    sum_blancas = 0
+    total_fichas = 0
+    for f in fichas:
+        if f == Ficha.NEGRA:
+            total_fichas += 1
+            sum_negras += 1
+        elif f == Ficha.BLANCA:
+            total_fichas += 1
+            sum_blancas += 1
+    if total_fichas == 64:
+        if sum_negras > sum_blancas:
+            return 1
+        elif sum_negras < sum_blancas:
+            return -1
+        else:
+            return 0
+    else:
+        return (sum_negras - sum_blancas) / total_fichas
+
+
+def ordena_jugadas(
+    jugadas: list[tuple[int, int]], jugador: int
+) -> list[tuple[int, int]]:
+    return jugadas
+
+
 def pretty_print_othello(s):
     print("\n   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |")
     separador_filas = "+---" * 8
