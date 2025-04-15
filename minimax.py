@@ -49,15 +49,15 @@ def negamax(
     tuple: (lista mejores jugadas, valor)
 
     """
-    if d != None and evalua == None:
+    if d is not None and evalua is None:
         raise ValueError("Se necesita evalua si d no es None")
-    if type(ordena) != type(None) and type(ordena) != type(lambda x: x):
+    if type(ordena) is not type(None) and type(ordena) is not type(lambda x: x):
         raise ValueError("ordena debe ser una función")
-    if type(evalua) != type(None) and type(evalua) != type(lambda x: x):
+    if type(evalua) is not type(None) and type(evalua) is not type(lambda x: x):
         raise ValueError("evalua debe ser una función")
-    if type(transp) != dict:
+    if type(transp) is not dict:
         raise ValueError("transp debe ser un diccionario")
-    if type(traza) != list:
+    if type(traza) is not list:
         raise ValueError("traza debe ser una lista")
 
     hash_estado = estado.tobytes()
@@ -66,12 +66,12 @@ def negamax(
         return [], jugador * juego.ganancia(estado)
     if d == 0:
         return [], jugador * evalua(estado)
-    if d != None and hash_estado in transp and transp[hash_estado][1] >= d:
+    if d is not None and hash_estado in transp and transp[hash_estado][1] >= d:
         return [], transp[hash_estado][0]
 
     v = -1e10
     jugadas = list(juego.jugadas_legales(estado, jugador))
-    if ordena != None:
+    if ordena is not None:
         jugadas = ordena(jugadas, jugador)
     else:
         shuffle(jugadas)
@@ -87,7 +87,7 @@ def negamax(
             -beta,
             -alpha,
             ordena,
-            d if d == None else d - 1,
+            d if d is None else d - 1,
             evalua,
             transp,
             traza,
