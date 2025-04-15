@@ -13,8 +13,9 @@ Jugador 2 = blanco
 """
 
 import numpy as np
-from juegos_simplificado import ModeloJuegoZT2
+from juegos_simplificado import ModeloJuegoZT2, juega_dos_jugadores
 from enum import IntEnum, Enum
+from minimax import minimax_iterativo, jugador_negamax
 
 
 class Ficha(IntEnum):
@@ -174,16 +175,16 @@ def buscar_ficha_en_dir(
     s, ficha_inicial: tuple[int, int], dir: Direccion, tipo_ficha: Ficha
 ) -> tuple[int, int] | None:
     seguir_buscando = True
-    ficha_actual = ficha_inicial
+    ficha_actual = avanzar_direccion(ficha_inicial, dir)
     while seguir_buscando:
         if not esta_en_rango(ficha_actual):
             return None
-        ficha_actual = avanzar_direccion(ficha_actual, dir)
         valor_ficha = s[ficha_actual[0]][ficha_actual[1]]
         if valor_ficha == Ficha.VACIA:
             return None
         elif valor_ficha == tipo_ficha:
             return ficha_actual
+        ficha_actual = avanzar_direccion(ficha_actual, dir)
 
 
 def voltear_fichas_en_rango(
@@ -280,3 +281,63 @@ def pretty_print_othello_con_jugadas_legales(s, juego: Othello, jugador: int):
         pretty_fila = num_fila + "|".join(valores_fila) + "|"
         print(pretty_fila)
         print(separador_filas)
+
+
+def jugador_manual_othello(
+    juego: Othello, s: np.ndarray, j: int
+) -> tuple[int, int] | None:
+    pretty_print_othello_con_jugadas_legales(s, juego, j)
+    print(f"Turno de jugador {Ficha(j).name}")
+    jugadas = juego.jugadas_legales(s, j)
+    print("Jugadas legales: ", jugadas)
+    jugada = None
+    while jugada not in jugadas:
+        fila = int(input("Fila: "))
+        columna = int(input("Columna: "))
+        jugada = (fila, columna)
+    return jugada
+
+
+if __name__ == "__main__":
+    modelo = Othello()
+    print("=" * 40 + "\n" + "EL JUEGO DE OTHELLO".center(40) + "\n" + "=" * 40)
+
+    jugs = []
+    for j in [1, -1]:
+        print(f"Selección de jugadores para las {' XO'[j]}:")
+        sel = 0
+        print("   1. Jugador manual")
+        print("   2. Jugador negamax limitado en profundidad")
+        print("   3. Jugador negamax limitado en tiempo")
+        while sel not in [1, 2, 3]:
+            sel = int(input(f"Jugador para las {' XO'[j]}: "))
+
+        if sel == 1:
+            jugs.append(jugador_manual_othello)
+        elif sel == 2:
+            d = None
+            while type(d) is not int or d < 1:
+                d = int(input("Profundidad: "))
+            jugs.append(
+                lambda juego, s, j: jugador_negamax(
+                    juego, s, j, ordena=None, evalua=evalua, d=d
+                )
+            )
+        else:
+            t = None
+            while type(t) is not int or t < 1:
+                t = int(input("Tiempo: "))
+            tn = int(t)
+            jugs.append(
+                lambda juego, s, j: minimax_iterativo(
+                    juego, s, j, ordena=None, evalua=evalua, tiempo=tn
+                )
+            )
+
+    g, s_final = juega_dos_jugadores(modelo, jugs[0], jugs[1])
+    print("\nSE ACABO EL JUEGO\n")
+    pretty_print_othello(s_final)
+    if g != 0:
+        print("Gana el jugador " + " XO"[g])
+    else:
+        print("Empate")
