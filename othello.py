@@ -46,7 +46,6 @@ class Othello(ModeloJuegoZT2):
 
     def jugadas_legales(self, s, j):
         fichas_oponentes = buscar_fichas(s, j * -1)
-        print(fichas_oponentes)
         posibles_jugadas_legales = set()
         jugadas_legales = []
         for ficha in fichas_oponentes:
@@ -231,6 +230,40 @@ def evalua(s: np.ndarray) -> float:
 def ordena_jugadas(
     jugadas: list[tuple[int, int]], jugador: int
 ) -> list[tuple[int, int]]:
+    def valor_jugada(jugada: tuple[int, int]) -> int:
+        x, y = jugada
+        for i in range(2, 6):
+            if (x == 1 or x == 6) and y == i:
+                return 3
+            elif x == i and (y == 1 or y == 6):
+                return 3
+            for j in range(2, 6):
+                if x == i and y == j:
+                    return 4
+        if (x == 1 or x == 6) and (y == 1 or y == 6):
+            return 1
+        elif (x == 0 or x == 7) and (y == 0 or y == 7):
+            return 5
+        elif (x == 1 and y == 0) or (x == 0 and y == 1):
+            return 2
+        elif (x == 6 and y == 0) or (x == 0 and y == 6):
+            return 2
+        elif (x == 7 and y == 1) or (x == 1 and y == 7):
+            return 2
+        elif (x == 7 and y == 6) or (x == 6 and y == 7):
+            return 2
+        elif (x == 3 and (y == 0 or y == 7)) or ((x == 0 or x == 7) and y == 3):
+            return 3
+        elif (x == 4 and (y == 0 or y == 7)) or ((x == 0 or x == 7) and y == 4):
+            return 3
+        elif (x == 2 and (y == 0 or y == 7)) or (y == 2 and (x == 0 or x == 7)):
+            return 4
+        elif (x == 5 and (y == 0 or y == 7)) or (y == 5 and (x == 0 or x == 7)):
+            return 4
+        else:
+            return 1
+
+    jugadas = sorted(jugadas, key=valor_jugada)
     return jugadas
 
 
@@ -289,13 +322,25 @@ def jugador_manual_othello(
     pretty_print_othello_con_jugadas_legales(s, juego, j)
     print(f"Turno de jugador {Ficha(j).name}")
     jugadas = juego.jugadas_legales(s, j)
-    print("Jugadas legales: ", jugadas)
+    # print("Jugadas legales: ", jugadas)
     jugada = None
     while jugada not in jugadas:
         fila = int(input("Fila: "))
         columna = int(input("Columna: "))
         jugada = (fila, columna)
     return jugada
+
+
+def juega_dos_jugadores_especial(juego, jugador1, jugador2):
+    s, j = juego.inicializa()
+    while not juego.terminal(s):
+        a = jugador1(juego, s, j) if j == 1 else jugador2(juego, s, j)
+        s = juego.transicion(s, a, j)
+        j = -j
+        char_jugador = "X" if -j == 1 else "O"
+        print(f"Jugador {char_jugador} hizo {a} y el tablero quedo asi:")
+        pretty_print_othello(s)
+    return juego.ganancia(s), s
 
 
 if __name__ == "__main__":
@@ -320,7 +365,7 @@ if __name__ == "__main__":
                 d = int(input("Profundidad: "))
             jugs.append(
                 lambda juego, s, j: jugador_negamax(
-                    juego, s, j, ordena=None, evalua=evalua, d=d
+                    juego, s, j, ordena=ordena_jugadas, evalua=evalua, d=d
                 )
             )
         else:
@@ -330,11 +375,11 @@ if __name__ == "__main__":
             tn = int(t)
             jugs.append(
                 lambda juego, s, j: minimax_iterativo(
-                    juego, s, j, ordena=None, evalua=evalua, tiempo=tn
+                    juego, s, j, ordena=ordena_jugadas, evalua=evalua, tiempo=tn
                 )
             )
 
-    g, s_final = juega_dos_jugadores(modelo, jugs[0], jugs[1])
+    g, s_final = juega_dos_jugadores_especial(modelo, jugs[0], jugs[1])
     print("\nSE ACABO EL JUEGO\n")
     pretty_print_othello(s_final)
     if g != 0:
