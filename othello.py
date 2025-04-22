@@ -44,7 +44,7 @@ class Othello(ModeloJuegoZT2):
         s0[4][4] = Ficha.BLANCA
         return (s0, 1)
 
-    def jugadas_legales(self, s, j):
+    def jugadas_legales(self, s: np.ndarray, j):
         fichas_oponentes = buscar_fichas(s, j * -1)
         posibles_jugadas_legales = set()
         jugadas_legales = []
@@ -227,43 +227,49 @@ def evalua(s: np.ndarray) -> float:
         return (sum_negras - sum_blancas) / total_fichas
 
 
+def cambiar_coordenadas(coord: tuple[int, int]) -> tuple[int, int]:
+    x, y = coord
+    nueva_x = 4 - x if x <= 3 else 3 - x
+    nueva_y = y - 4 if y <= 3 else y - 3
+    return (nueva_x, nueva_y)
+
+
+def dist_manhattan(coord: tuple[int, int]) -> int:
+    return abs(coord[0]) + abs(coord[1])
+
+
 def ordena_jugadas(
     jugadas: list[tuple[int, int]], jugador: int
 ) -> list[tuple[int, int]]:
     def valor_jugada(jugada: tuple[int, int]) -> int:
         x, y = jugada
-        for i in range(2, 6):
-            if (x == 1 or x == 6) and y == i:
-                return 3
-            elif x == i and (y == 1 or y == 6):
-                return 3
-            for j in range(2, 6):
-                if x == i and y == j:
+        coord = cambiar_coordenadas(jugada)
+        d = dist_manhattan(coord)
+        match d:
+            case 2:
+                return 4
+            case 3:
+                return 4
+            case 4:
+                if abs(x) == abs(y):
                     return 4
-        if (x == 1 or x == 6) and (y == 1 or y == 6):
-            return 1
-        elif (x == 0 or x == 7) and (y == 0 or y == 7):
-            return 5
-        elif (x == 1 and y == 0) or (x == 0 and y == 1):
-            return 2
-        elif (x == 6 and y == 0) or (x == 0 and y == 6):
-            return 2
-        elif (x == 7 and y == 1) or (x == 1 and y == 7):
-            return 2
-        elif (x == 7 and y == 6) or (x == 6 and y == 7):
-            return 2
-        elif (x == 3 and (y == 0 or y == 7)) or ((x == 0 or x == 7) and y == 3):
-            return 3
-        elif (x == 4 and (y == 0 or y == 7)) or ((x == 0 or x == 7) and y == 4):
-            return 3
-        elif (x == 2 and (y == 0 or y == 7)) or (y == 2 and (x == 0 or x == 7)):
-            return 4
-        elif (x == 5 and (y == 0 or y == 7)) or (y == 5 and (x == 0 or x == 7)):
-            return 4
-        else:
-            return 1
+                else:
+                    return 3
+            case 5:
+                return 3
+            case 6:
+                if abs(x) == abs(y):
+                    return 1
+                else:
+                    return 4
+            case 7:
+                return 2
+            case 8:
+                return 5
+            case _:
+                return 1
 
-    jugadas = sorted(jugadas, key=valor_jugada)
+    jugadas = sorted(jugadas, key=valor_jugada, reverse=True)
     return jugadas
 
 
